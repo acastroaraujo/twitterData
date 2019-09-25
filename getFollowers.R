@@ -20,6 +20,7 @@ get_edge_list <- function(u) {
   rl <- rate_limit(token, "get_followers") %>% 
     pull(remaining) * 5e3
   cat(user_info$screen_name, "has", fc, "followers...\n")
+  cat("Approximately",  ceiling(fc / 75000), "queries are required...\n")
   
   # ******************************************************
   # Case 1: one token is enough
@@ -53,6 +54,7 @@ get_edge_list <- function(u) {
     
     followers <- bind_rows(output) %>% 
       drop_na() %>% 
+      distinct() %>% 
       pull(user_id)
     
   # ******************************************************
@@ -65,7 +67,7 @@ get_edge_list <- function(u) {
     
     if (sum(rl) == 0) { 
       cat("Token reset in", min(rate_limit(token, "get_followers") %>% pull(reset)), "mins...\n")
-      Sys.sleep(min(rate_limit(token, "get_followers") %>% pull(reset)) * 60 + 5)
+      Sys.sleep(min(rate_limit(token, "get_followers") %>% pull(reset)) * 60 + 10)
       rl <- rate_limit(token, "get_followers") %>% pull(remaining) * 5e3
     }
     
@@ -79,23 +81,22 @@ get_edge_list <- function(u) {
     repeat {
       
       i <- i + 1
-      rl <- rate_limit(token, "get_followers") %>% pull(remaining)
+      df_rate_limit <- rate_limit(token, "get_followers")
+      rl <- df_rate_limit %>% pull(remaining)
       
       if (sum(rl) == 0) {   # wait min time possible if all tokens are exhausted
-        cat("Wait for", min(rate_limit(token, "get_followers") %>% pull(reset)), "mins...\n")
-        
-        t0 <- rate_limit(token, "get_followers") %>% 
-          pull(timestamp)
-        
-        t1 <- rate_limit(token, "get_followers") %>% 
-          pull(reset_at)
-        
+        cat("Wait for", min(df_rate_limit %>% pull(reset)), "mins...\n")
+        t0 <- df_rate_limit %>% pull(timestamp)
+        t1 <- df_rate_limit %>% pull(reset_at)
         Sys.sleep(min(difftime(t1, t0, units = "secs")) + 5)
       }
       
-      ## sometimes the tokens don't reset when they're supposed to...
+      rl <- rate_limit(token, "get_followers") %>% pull(remaining)
+      
+      ## Sometimes the tokens don't reset when they're supposed to.
+      ## If all works well, this little snippet should never execute.
       while (sum(rl) == 0) { 
-        rl <- try(rate_limit(token, "get_followers") %>% pull(remaining))
+        rl <- rate_limit(token, "get_followers") %>% pull(remaining)
         Sys.sleep(30)
       }
       
@@ -108,12 +109,13 @@ get_edge_list <- function(u) {
       )
       
       if (nrow(output[[i]]) < max(rl) * 5e3) {
-        break   ### optimal break isn't optimal yet
+        break
       }
     }
     
     followers <- bind_rows(output) %>% 
       drop_na() %>% 
+      distinct() %>% 
       pull(user_id)
   }
   return(tibble(from = followers, to = user_info$user_id))
@@ -121,10 +123,11 @@ get_edge_list <- function(u) {
 
 # ********************************************************
 # Demonstration
+# rate_limit(token, query = "get_followers")
 # ********************************************************
-rate_limit(token, query = "get_followers")
 
-u <- "HOLLMANMORRIS"
+
+u <- "ClaudiaLopez"
 out <- get_edge_list(u)
 
 file_name <- paste0(outfolder, u, ".rds")
