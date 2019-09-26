@@ -1,10 +1,11 @@
 source("getEdgeList.R")
 
-friends <- get_edge_list_of_friends("schwartzie14")
-followers <- get_edge_list_of_followers("schwartzie14")
+# friends <- get_edge_list_of_friends("schwartzie14")
+# followers <- get_edge_list_of_followers("schwartzie14")
+# core <- bind_rows(followers, friends)
+# write_rds(core, "ceo_network/core_network.rds", compress = "gz")
 
-core <- bind_rows(followers, friends)
-write_rds(core, "ceo_network/core_network.rds", compress = "gz")
+core <- read_rds("ceo_network/core_network.rds")
 
 followers_list <- setdiff(unique(core$from), "15586275")
 friends_list <- setdiff(unique(core$to), "15586275")

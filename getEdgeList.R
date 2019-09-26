@@ -68,7 +68,7 @@ get_edge_list_of_followers <- function(u) {
     
     if (sum(rl) == 0) { 
       cat("Token reset in", min(rate_limit(token, "get_followers") %>% pull(reset)), "mins...\n")
-      Sys.sleep(min(rate_limit(token, "get_followers") %>% pull(reset)) * 60 + 10)
+      Sys.sleep(median(rate_limit(token, "get_followers") %>% pull(reset)) * 60 + 10)
       rl <- rate_limit(token, "get_followers") %>% pull(remaining) * 5e3
     }
     
@@ -86,10 +86,10 @@ get_edge_list_of_followers <- function(u) {
       rl <- df_rate_limit %>% pull(remaining)
       
       if (sum(rl) == 0) {   # wait min time possible if all tokens are exhausted
-        cat("Wait for", min(df_rate_limit %>% pull(reset)), "mins...\n")
+        cat("Wait for", median(df_rate_limit %>% pull(reset)), "mins...\n")
         t0 <- df_rate_limit %>% pull(timestamp)
         t1 <- df_rate_limit %>% pull(reset_at)
-        Sys.sleep(min(difftime(t1, t0, units = "secs")) + 5)
+        Sys.sleep(median(difftime(t1, t0, units = "secs")) + 5)
       }
       
       rl <- rate_limit(token, "get_followers") %>% pull(remaining)
@@ -97,8 +97,8 @@ get_edge_list_of_followers <- function(u) {
       ## Sometimes the tokens don't reset when they're supposed to.
       ## If all works well, this little snippet should never execute.
       while (sum(rl) == 0) { 
-        rl <- rate_limit(token, "get_followers") %>% pull(remaining)
         Sys.sleep(30)
+        rl <- rate_limit(token, "get_followers") %>% pull(remaining)
       }
       
       token_index <- which(rl == max(rl))[[1]]
@@ -182,7 +182,7 @@ get_edge_list_of_friends <- function(u) {
     
     if (sum(rl) == 0) { 
       cat("Token reset in", min(rate_limit(token, "get_friends") %>% pull(reset)), "mins...\n")
-      Sys.sleep(min(rate_limit(token, "get_friends") %>% pull(reset)) * 60 + 10)
+      Sys.sleep(median(rate_limit(token, "get_friends") %>% pull(reset)) * 60 + 10)
       rl <- rate_limit(token, "get_friends") %>% pull(remaining) * 5e3
     }
     
@@ -200,10 +200,10 @@ get_edge_list_of_friends <- function(u) {
       rl <- df_rate_limit %>% pull(remaining)
       
       if (sum(rl) == 0) {   # wait min time possible if all tokens are exhausted
-        cat("Wait for", min(df_rate_limit %>% pull(reset)), "mins...\n")
+        cat("Wait for", median(df_rate_limit %>% pull(reset)), "mins...\n")
         t0 <- df_rate_limit %>% pull(timestamp)
         t1 <- df_rate_limit %>% pull(reset_at)
-        Sys.sleep(min(difftime(t1, t0, units = "secs")) + 5)
+        Sys.sleep(median(difftime(t1, t0, units = "secs")) + 5)
       }
       
       rl <- rate_limit(token, "get_friends") %>% pull(remaining)
@@ -211,8 +211,8 @@ get_edge_list_of_friends <- function(u) {
       ## Sometimes the tokens don't reset when they're supposed to.
       ## If all works well, this little snippet should never execute.
       while (sum(rl) == 0) { 
-        rl <- rate_limit(token, "get_friends") %>% pull(remaining)
         Sys.sleep(30)
+        rl <- rate_limit(token, "get_friends") %>% pull(remaining)
       }
       
       token_index <- which(rl == max(rl))[[1]]
