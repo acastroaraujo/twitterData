@@ -1,3 +1,8 @@
+# To fix: When users with small amounts of followers are parsed through exhausted tokens,
+# they get sent to option 3 and sometimes a sys.sleep error is produced.
+# I believe that the whole i <- i + 1 scheme where only one i is needed breaks!!
+
+
 
 # ********************************************************
 # Setup; only use this function if you have multiple tokens
@@ -67,7 +72,7 @@ get_edge_list_of_followers <- function(u) {
     ## wait some time if all tokens are exhausted...
     
     if (sum(rl) == 0) { 
-      cat("Token reset in", min(rate_limit(token, "get_followers") %>% pull(reset)), "mins...\n")
+      cat("Token reset in", median(rate_limit(token, "get_followers") %>% pull(reset)), "mins...\n")
       Sys.sleep(median(rate_limit(token, "get_followers") %>% pull(reset)) * 60 + 10)
       rl <- rate_limit(token, "get_followers") %>% pull(remaining) * 5e3
     }
@@ -181,7 +186,7 @@ get_edge_list_of_friends <- function(u) {
     ## wait some time if all tokens are exhausted...
     
     if (sum(rl) == 0) { 
-      cat("Token reset in", min(rate_limit(token, "get_friends") %>% pull(reset)), "mins...\n")
+      cat("Token reset in", median(rate_limit(token, "get_friends") %>% pull(reset)), "mins...\n")
       Sys.sleep(median(rate_limit(token, "get_friends") %>% pull(reset)) * 60 + 10)
       rl <- rate_limit(token, "get_friends") %>% pull(remaining) * 5e3
     }
