@@ -137,8 +137,7 @@ get_edge_list_of_friends <- function(u) {
   rl <- rate_limit(token, "get_friends") %>% 
     pull(remaining) * 5e3
   
-  cat(paste0("\n", user_info$screen_name, " is following ", scales::comma(fc), " users "))
-  cat(paste0("(approx. ",  ceiling(fc / 75000), " queries are required)\n"))
+  message(paste0("\n", user_info$screen_name, " is following ", scales::comma(fc), " users ", "(approx. ",  ceiling(fc / 75000), " queries are required)"))
   
   if (fc == 0) return(list(NULL))
   
@@ -205,7 +204,7 @@ get_edge_list_of_friends <- function(u) {
       rl <- df_rate_limit %>% pull(remaining)
       
       if (sum(rl) == 0) {   # wait min time possible if all tokens are exhausted
-        cat("Wait for", median(df_rate_limit %>% pull(reset)), "mins...\n")
+        message("Wait for", median(df_rate_limit %>% pull(reset)), "mins...")
         t0 <- df_rate_limit %>% pull(timestamp)
         t1 <- df_rate_limit %>% pull(reset_at)
         Sys.sleep(median(difftime(t1, t0, units = "secs")) + 5)
